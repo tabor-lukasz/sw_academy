@@ -1,0 +1,32 @@
+1
+30
+1 (6,7)=Handel((1,6),(3,4))
+1 (7,6)=Przetwarzanie((0,0),(4,5))
+1 (5,5)=Ataki((3,0):(3,2))
+1 (0,1)=Produkcja(78)
+1 (4,3)=Produkcja(43)
+1 (5,1)=Produkcja(23)
+1 (9,9)=Przetwarzanie((2,7),(1,0))
+1 (7,6)=Podatki((0,3):(3,3))
+1 (8,7)=Ataki((0,1):(4,1))
+0
+1 (0,8)=Produkcja(37)
+1 (4,5)=Handel((0,3),(2,0))
+1 (6,6)=Podatki((2,1):(2,3))
+1 (6,5)=Podatki((0,3):(5,3))
+1 (4,0)=Produkcja(18)
+1 (6,5)=Produkcja(47)
+1 (8,7)=Ataki((1,0):(5,0))
+1 (9,5)=Handel((2,0),(5,4))
+1 (8,5)=Przetwarzanie((5,0),(4,1))
+0
+1 (8,9)=Podatki((0,0):(0,6))
+1 (6,7)=Przetwarzanie((1,4),(0,2))
+1 (6,7)=Przetwarzanie((3,5),(0,0))
+1 (6,7)=Handel((2,2),(0,3))
+1 (9,7)=Podatki((3,4):(5,4))
+1 (5,9)=Handel((0,7),(1,0))
+1 (2,9)=Produkcja(22)
+1 (9,9)=Handel((3,2),(0,0))
+1 (3,8)=Produkcja(35)
+0

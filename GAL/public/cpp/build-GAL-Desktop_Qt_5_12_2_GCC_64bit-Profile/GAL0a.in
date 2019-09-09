@@ -1,0 +1,21 @@
+1
+19
+1 (0,0)=Produkcja(10)
+1 (0,1)=Produkcja(11)
+1 (0,2)=Produkcja(12)
+1 (0,3)=Produkcja(13)
+1 (0,4)=Produkcja(14)
+1 (0,5)=Produkcja(15)
+1 (0,6)=Produkcja(16)
+1 (1,0)=Handel((0,0),(0,1))
+0
+1 (2,0)=Przetwarzanie((0,2),(0,3))
+0
+1 (3,0)=Ataki((0,0):(0,5))
+0
+1 (4,0)=Podatki((0,0):(0,9))
+0
+1 (2,2)=Podatki((0,0):(9,1))
+0
+1 (0,6)=Ataki((0,0):(0,3))
+0
