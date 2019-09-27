@@ -27,6 +27,7 @@ public:
 
 
 
+//string TestCases = "b";
 string TestCases = "ab";
 string TestCasePrefix = "res/WYB0";
 string TestCaseSuffixIn = ".in";
@@ -41,7 +42,7 @@ int dist[MAX_N];
 
 } // namespace
 
-void Judge::run(IWYB *solution) {
+void Judge::run(IPLE *solution) {
 
     for (auto cc : TestCases) {
 
