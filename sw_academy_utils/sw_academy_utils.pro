@@ -8,4 +8,6 @@ SOURCES += \
 
 HEADERS += \
     listlinked.h \
-    sortmerge.h
+    sortmerge.h \
+    heap.h \
+    rbtree.h
