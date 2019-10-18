@@ -1,6 +1,12 @@
 #include "judge.h"
 #include<iostream>
 #include<iomanip>
+//#include <fstream>
+//#include <sstream>
+
+//#include <set>
+//#include <map>
+//#include <vector>
 
 
 #include "../sw_academy_utils/rbtree.h"
@@ -8,10 +14,11 @@
 using namespace std;
 
 int stash[1000*1000];
-int stash_size;
+unsigned stash_size;
+//vector<int> stash;
 
 int hh,ww;
-int tt[1000+1][1000+1];
+int (*tt)[1000];
 int parent[1000+1][1000+1];
 
 void printStash();
@@ -28,7 +35,9 @@ void printTT() {
 void printParents() {
     for (int i = 0; i < hh; i++) {
         for (int j = 0; j < ww; j++) {
-            cout<< setw(3) << parent[i][j] << " ";
+            cout<< setw(5) << parent[i][j] << " ";
+            if (j > 20)
+                break;
         }
         cout << endl;
     }
@@ -36,13 +45,10 @@ void printParents() {
 
 struct Connection {
 
-    Connection(int to, int power) : power(power), to(to) {
-        if (power > 0)
-            rank = power*1000000 + to;
-        else {
-            rank = power*1000000 - to;
-        }
+    Connection(int _to, int _power) : power(_power), to(_to) {
+        rank = power*1000000 + to;
     }
+
     int rank;
 
     inline int getTo() const {
@@ -76,7 +82,7 @@ public:
 
     State() {}
     void grow(int x,int y) {
-        if (x > hh || x < 0 || y < 0 || y > ww )
+        if (x >= hh || x < 0 || y < 0 || y >= ww)
             return;
 
         if (tt[x][y] != power){
@@ -93,7 +99,7 @@ public:
         }
 
         parent[x][y] = id;
-        area++;
+        ++area;
         grow(x+1,y);
         grow(x-1,y);
         grow(x,y+1);
@@ -105,80 +111,111 @@ public:
     }
 
     bool consumeGreater() {
+//        if (neighbours_greater.empty()) {
+//            return false;
+//        }
+//        auto min = neighbours_greater.begin();
         auto min = neighbours_greater.getMin();
         if (!min) {
             return false;
         }
         if (min->val.getPower() > (power_max+1)) {
+//        if (min->getPower() > (power_max+1)) {
             return false;
         }
         auto id = min->val.getTo();
+//        auto id = min->getTo();
         //        cout << "consuming: " << id <<endl;
         neighbours_greater.deleteByVal(min->val);
+//        neighbours_greater.erase(min);
+
         area += states[id].area;
+        consumed.insert(id);
         if (power_max_upd < states[id].power) {
             power_max_upd = states[id].power;
         }
-        consumed.insert(id);
+//        auto neigh = states[id].neighbours.begin();
         auto neigh = states[id].neighbours.getRoot();
+//        while (!states[id].neighbours.empty()) {
         while (neigh) {
+//            if (consumed.find(neigh->getTo()) == consumed.end()) {
             if (consumed.search(neigh->val.getTo())->val != neigh->val.getTo()) {
+//                stash[stash_size] = neigh->getTo();
+//                stash.push_back(neigh->getTo());
                 stash[stash_size] = neigh->val.getTo();
-                stash_size++;
-                printStash();
+                ++stash_size;
+//                printStash();
             }
+//            states[id].neighbours.erase(neigh);
             states[id].neighbours.deleteByVal(neigh->val);
+//            neigh = states[id].neighbours.begin();
             neigh = states[id].neighbours.getRoot();
         }
         return true;
     }
 
     bool consumeLesser() {
+//        if (neighbours_lesser.empty())
+//            return false;
+//        auto max = --(neighbours_lesser.end());
         auto max = neighbours_lesser.getMax();
         if (!max) {
             return false;
         }
         if (max->val.getPower() < (power_min-1)) {
+//        if (max->getPower() < (power_min-1)) {
             return false;
         }
+//        auto id = max->getTo();
         auto id = max->val.getTo();
         //        cout << "consuming: " << id <<endl;
+//        neighbours_lesser.erase(max);
         neighbours_lesser.deleteByVal(max->val);
         area += states[id].area;
         if (power_min_upd > states[id].power) {
             power_min_upd = states[id].power;
         }
         consumed.insert(id);
+//        auto neigh = states[id].neighbours.begin();
         auto neigh = states[id].neighbours.getRoot();
         while (neigh) {
+//        while (!states[id].neighbours.empty()) {
             if (consumed.search(neigh->val.getTo())->val != neigh->val.getTo()) {
+//            if (consumed.find(neigh->getTo()) == consumed.end()) {
                 stash[stash_size] = neigh->val.getTo();
-                stash_size++;
-                printStash();
+//                stash.push_back(neigh->getTo());
+                ++stash_size;
+//                printStash();
             }
             states[id].neighbours.deleteByVal(neigh->val);
+//            states[id].neighbours.erase(neigh);
             neigh = states[id].neighbours.getRoot();
+//            neigh = states[id].neighbours.begin();
         }
         return true;
     }
 
     void finalize() {
-        for (int i = 0; i < stash_size; ++i) {
+//        for (unsigned i = 0; i < stash.size(); ++i) {
+        for (unsigned i = 0; i < stash_size; ++i) {
             if (consumed.search(stash[i])->val != stash[i]) {
-                //                cout << "adding " << stash[i] << endl;
+//            if (consumed.find(stash[i]) == consumed.end()) {
+//                                cout << "adding " << stash[i] << endl;
                 if (states[stash[i]].power < 0)
                     neighbours_lesser.insert({stash[i],states[stash[i]].power});
                 else
                     neighbours_greater.insert({stash[i],states[stash[i]].power});
             }
         }
-        if (power_max_upd - power_max > 1)
-            throw 4;
-        if (power_min - power_min_upd > 1)
-            throw 6;
-        power_max = power_max_upd;
-        power_min = power_min_upd;
+        if (power_max < power_max_upd) {
+            power_max = power_max_upd;
+        }
+
+        if (power_min_upd < power_min) {
+            power_min = power_min_upd;
+        }
         stash_size = 0;
+//        stash.clear();
         //        cout  << "fin " << area << " " << power_min << " " << power_max << endl;
     }
 
@@ -186,11 +223,15 @@ public:
     static RBTree<Connection> neighbours_lesser;
     RBTree<Connection> neighbours;
     RBTree<int> consumed;
+//    static set<Connection> neighbours_greater;
+//    static set<Connection> neighbours_lesser;
+//    set<Connection> neighbours;
+//    set<int> consumed;
     int area = -1;
     int power_max = 0;
-    int power_max_upd = 0;
+    static int power_max_upd;
     int power_min = 0;
-    int power_min_upd = 0;
+    static int power_min_upd;
     int power;
     int id = -1;
 
@@ -198,7 +239,11 @@ public:
 };
 
 State State::states[1000*1000];
-int State::states_count;
+int State::states_count = 0;
+int State::power_max_upd = 0;
+int State::power_min_upd = 0;
+//set<Connection> State::neighbours_greater;
+//set<Connection> State::neighbours_lesser;
 RBTree<Connection> State::neighbours_greater;
 RBTree<Connection> State::neighbours_lesser;
 
@@ -216,14 +261,14 @@ void printStates() {
     }
 }
 
-void printAll() {
-    //    printTT();
-    //    cout << endl;
-    //    printParents();
-    //    cout << endl;
-    //    printStates();
-    //    cout << endl;
-}
+//void printAll() {
+//////    printTT();
+////    cout << endl;
+////    printParents();
+////    cout << endl;
+//////    printStates();
+////    cout << endl;
+//}
 
 class INW : public IINW {
 public:
@@ -234,17 +279,21 @@ public:
         moves = 0;
         //simId++;
         stash_size = 0;
+//        stash.clear();
         State::states_count = 1;
+        State::power_max_upd = 0;
+        State::power_min_upd = 0;
         while(State::neighbours_greater.getRoot()) {
             State::neighbours_greater.removeRoot();
         }
         while(State::neighbours_lesser.getRoot()) {
             State::neighbours_lesser.removeRoot();
         }
-
+//        State::neighbours_greater.clear();
+//        State::neighbours_lesser.clear();
+        tt = t;
         for(int i = 0; i <= h; i++) {
             for(int j = 0; j <=  w; ++j) {
-                tt[i][j] = t[i][j];
                 parent[i][j] = -1;
             }
         }
@@ -253,12 +302,12 @@ public:
             State::states[i] = State();
         }
 
-        printAll();
+        //        printAll();
 
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < w; j++) {
                 if (parent[i][j] == -1) {
-                    printAll();
+                    //                    printAll();
                     if (tt[i][j] == 0) {
                         parent[i][j]  = State::states[0].id = 0;
                     } else {
@@ -271,18 +320,22 @@ public:
                     State::states[parent[i][j]].grow(i-1,j);
                     State::states[parent[i][j]].grow(i,j+1);
                     State::states[parent[i][j]].grow(i,j-1);
-                    printAll();
+                    //                    printAll();
                 }
             }
         }
+//        printAll();
         State::states[0].consumed.insert(0);
         while (State::states[0].neighbours.getRoot()) {
             auto connection = State::states[0].neighbours.getRoot()->val;
+//        while (!State::states[0].neighbours.empty()) {
+//            auto connection = State::states[0].neighbours.begin();
             if (connection.getPower() > 0) {
                 State::neighbours_greater.insert(connection);
             } else {
                 State::neighbours_lesser.insert(connection);
             }
+//            State::states[0].neighbours.erase(connection);
             State::states[0].neighbours.removeRoot();
         }
         bool change = true;
@@ -337,7 +390,7 @@ public:
             }
         }
 
-        print();
+//        print();
 
         bool any_change = true;
         while (any_change) {
@@ -353,14 +406,8 @@ public:
                     for (int j = 0; j < ww; j++) {
                         if(about_to_change[i][j]) {
                             if (t[i][j] > max) {
-//                                if (t[i][j] - max > 1) {
-//                                    throw 4;
-//                                }
                                 max = t[i][j];
                             } else if (t[i][j] < min) {
-//                                if (min - t[i][j] > 1) {
-//                                    throw 5;
-//                                }
                                 min = t[i][j];
                             }
                             t[i][j] = 0;
@@ -369,14 +416,14 @@ public:
                         }
                     }
                 }
-                print();
+//                print();
             }
 
             if (any_change || has_grown) {
                 moves++;
             }
         }
-        print();
+//        print();
     }
 
     int getInvasionDuration() {
@@ -390,7 +437,7 @@ public:
         bool marked = false;
         for (int i = 0; i < hh; i++) {
             for (int j = 0; j < ww; j++) {
-                if (about_to_change[i][j] == true && ttt[i][j]) {
+                if (about_to_change[i][j]) {
                     marked |= tryToExtend(i-1,j,ttt[i][j]);
                     marked |= tryToExtend(i+1,j,ttt[i][j]);
                     marked |= tryToExtend(i,j-1,ttt[i][j]);
@@ -404,7 +451,7 @@ public:
     bool tryToExtend(int x, int y,int source_power) {
         if (x >= 0 && x < hh && y >= 0 && y < ww && ttt[x][y] == source_power && !about_to_change[x][y]) {
             about_to_change[x][y] = true;
-            print();
+//            print();
             return true;
         }
         return false;
@@ -428,28 +475,28 @@ public:
     bool tryToMark(int x, int y) {
         if (x >= 0 && x < hh && y >= 0 && y < ww && ttt[x][y] && !about_to_change[x][y] && ttt[x][y] <= (max +1) && ttt[x][y] >= (min - 1) ) {
             about_to_change[x][y] = true;
-            print();
+//            print();
             return true;
         }
         return false;
     }
 
-    void print() {
-        //        for (int i = 0; i < h; i++) {
-        //            for (int j = 0; j < w; j++) {
-        //                cout << setw(3) << ttt[i][j] << " ";
-        //            }
-        //            cout << endl;
-        //        }
-        //        cout << endl;
-        //        for (int i = 0; i < h; i++) {
-        //            for (int j = 0; j < w; j++) {
-        //                cout << setw(3) << about_to_change[i][j] << " ";
-        //            }
-        //            cout << endl;
-        //        }
-        //        cout << area << " " << min << " " << max << endl;
-    }
+//    void print() {
+//        //        for (int i = 0; i < h; i++) {
+//        //            for (int j = 0; j < w; j++) {
+//        //                cout << setw(3) << ttt[i][j] << " ";
+//        //            }
+//        //            cout << endl;
+//        //        }
+//        //        cout << endl;
+//        //        for (int i = 0; i < h; i++) {
+//        //            for (int j = 0; j < w; j++) {
+//        //                cout << setw(3) << about_to_change[i][j] << " ";
+//        //            }
+//        //            cout << endl;
+//        //        }
+//        //        cout << area << " " << min << " " << max << endl;
+//    }
     int moves;
     int area;
     int ww;
@@ -458,9 +505,46 @@ public:
     int max;
 };
 
+//#include <vector>
+
+//struct Point {
+//    int x;
+//    int y;
+//};
+
+
+
+//vector<Point> points;
+
+//class Brute2 : public IINW  {
+//    void init(int h, int w, int t[1000][1000]) {
+//        min = 0;
+//        max = 0;
+//        area = 0;
+//        moves = 0;
+
+
+//    }
+
+//    int getInvasionDuration() {
+//        return moves;
+//    }
+//    int getFinalArea() {
+//        return area;
+//    }
+
+//    int moves;
+//    int area;
+//    int min;
+//    int max;
+
+// }
+//};
+
 INW solution;
+Brute solution2;
 int main() {
     Judge::run(&solution);
+//    Judge::run(&solution2);
     return 0;
 }
-
